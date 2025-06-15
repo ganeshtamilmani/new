@@ -1,0 +1,27 @@
+image: atlassian/default-image:3
+
+pipelines:
+  default:
+    - step:
+        name: Detect changes & build images
+        script:
+          - git fetch origin main
+          - export CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          - echo "Changed files: $CHANGED_FILES"
+
+          - |
+            if echo "$CHANGED_FILES" | grep -qE '^backend/|Dockerfile\.backend'; then
+              echo "Building backend image..."
+              docker build -t my-backend:latest -f Dockerfile.backend ./backend
+            else
+              echo "No backend changes detected."
+            fi
+
+          - |
+            if echo "$CHANGED_FILES" | grep -qE '^frontend/|Dockerfile\.frontend'; then
+              echo "Building frontend image..."
+              docker build -t my-frontend:latest -f Dockerfile.frontend ./frontend
+            else
+              echo "No frontend changes detected."
+            fi
+
